@@ -8,14 +8,17 @@
 const SUPABASE_URL = 'https://kwurnepfofloiuwprqbd.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3dXJuZXBmb2Zsb2l1d3BycWJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNDAxOTcsImV4cCI6MjA5MTkxNjE5N30.29S6Ka-FzYXvepdjv8-H82fseMJGAiZ6eA8jtjt2VwQ';
 
-let supabase = null;
-if (typeof window.supabase !== 'undefined') {
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// CDN이 window.supabase(라이브러리)를 이미 선언하므로, client를 별도 변수에 저장
+window.supabaseClient = null;
+if (typeof window.supabase !== 'undefined' && typeof window.supabase.createClient === 'function') {
+  window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
 
+// 앱 내부에서 supabaseClient를 간편하게 참조
+const getClient = () => window.supabaseClient;
+
 function isSupabaseConfigured() {
-  if (SUPABASE_URL.includes('YOUR_')) {
-    console.warn('⚠️ Supabase API 키가 아직 입력되지 않았습니다. 현재는 로컬(프론트엔드) 기반으로 화면이 동작합니다.');
+  if (SUPABASE_URL.includes('YOUR_') || !window.supabaseClient) {
     return false;
   }
   return true;
@@ -181,7 +184,7 @@ async function socialLogin(providerName, provider) {
       const redirectTo = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
         ? window.location.origin
         : 'https://bodweaver.vercel.app';
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { error } = await window.supabaseClient.auth.signInWithOAuth({
         provider,
         options: { redirectTo }
       });
@@ -205,12 +208,12 @@ async function phoneLogin() {
   if (isSupabaseConfigured()) {
     const phone = prompt('전화번호를 입력하세요 (예: +821012345678)');
     if (!phone) return;
-    const { error } = await supabase.auth.signInWithOtp({ phone });
+    const { error } = await window.supabaseClient.auth.signInWithOtp({ phone });
     if (error) { showToast('전송 실패: ' + error.message); return; }
     showToast('📱 인증 코드가 전송되었습니다.');
     const otp = prompt('받으신 6자리 코드를 입력하세요');
     if (!otp) return;
-    const { error: err2 } = await supabase.auth.verifyOtp({ phone, token: otp, type: 'sms' });
+    const { error: err2 } = await window.supabaseClient.auth.verifyOtp({ phone, token: otp, type: 'sms' });
     if (err2) { showToast('인증 실패: ' + err2.message); return; }
     showToast('✅ 전화번호 인증 성공!');
     goTo('home');
@@ -232,7 +235,7 @@ document.getElementById('splash-login')?.addEventListener('click', (e) => {
 
 // Supabase Auth 세션 감지 (OAuth 리다이렉트 후)
 if (isSupabaseConfigured()) {
-  supabase.auth.onAuthStateChange((event, session) => {
+  window.supabaseClient.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_IN' && session) {
       showToast('✅ 로그인 완료!');
       goTo('home');
@@ -1075,12 +1078,11 @@ document.querySelectorAll('.report-tag').forEach(tag => {
 
 // 1. 모임 리스트 불러오기 (GET)
 async function fetchRoomsFromBackend() {
-  if (!isSupabaseConfigured()) return typeof ROOM_DATA !== 'undefined' ? ROOM_DATA : []; 
-  
+  if (!isSupabaseConfigured()) return typeof ROOM_DATA !== 'undefined' ? ROOM_DATA : [];
   try {
-    const { data, error } = await supabase.from('rooms').select('*').order('created_at', { ascending: false });
+    const { data, error } = await window.supabaseClient.from('rooms').select('*').order('created_at', { ascending: false });
     if (error) throw error;
-    console.log('✅ 백엔드 DB 통신 성공 (모임 리스트):', data);
+    console.log('✅ 백엔드 DB 통신 성공:', data);
     return data;
   } catch (err) {
     console.error('❌ 백엔드 통신 에러:', err);
@@ -1092,7 +1094,7 @@ async function fetchRoomsFromBackend() {
 async function createRoomInBackend(roomObj) {
   if (!isSupabaseConfigured()) return;
   try {
-    const { error } = await supabase.from('rooms').insert([roomObj]);
+    const { error } = await window.supabaseClient.from('rooms').insert([roomObj]);
     if (error) throw error;
     console.log('✅ 모임 생성 완료');
   } catch (err) {
@@ -1104,7 +1106,7 @@ async function createRoomInBackend(roomObj) {
 async function sendChatMessage(roomId, text, senderName) {
   if (!isSupabaseConfigured()) return;
   try {
-    const { error } = await supabase.from('messages').insert([
+    const { error } = await window.supabaseClient.from('messages').insert([
       { room_id: roomId, text: text, sender: senderName }
     ]);
     if (error) throw error;
@@ -1116,13 +1118,11 @@ async function sendChatMessage(roomId, text, senderName) {
 // 4. 실시간 채팅 구독 (WebSockets)
 function listenToChatUpdates(callback) {
   if (!isSupabaseConfigured()) return;
-  
-  // Realtime 리스너 등록
-  supabase
+  window.supabaseClient
     .channel('chat_room_channel')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
       console.log('🔔 [실시간] 새 메시지 감지:', payload.new);
-      callback(payload.new); // 화면에 즉시 렌더링
+      callback(payload.new);
     })
     .subscribe();
 }
