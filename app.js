@@ -302,6 +302,12 @@ function goTo(id) {
   
   if (id === 'chat') {
     renderChatList();
+    updateNavChatBadge();
+  }
+  if (id === 'home') {
+    renderDynamicRooms();
+    renderActivityFeed();
+    updateNavChatBadge();
   }
 }
 
@@ -499,7 +505,14 @@ function checkNeedsOnboarding(profile) {
 // ===========================
 document.getElementById('home-match-btn').addEventListener('click', () => goTo('match'));
 document.getElementById('home-explore-btn').addEventListener('click', () => goTo('explore'));
-document.getElementById('notif-btn').addEventListener('click', () => showToast('🔔 알림 3개'));
+document.getElementById('notif-btn').addEventListener('click', () => {
+  const panel = document.getElementById('notif-panel');
+  if (panel) {
+    panel.classList.toggle('hidden');
+  } else {
+    showToast('🔔 새 알림이 없습니다');
+  }
+});
 document.getElementById('profile-btn-top').addEventListener('click', () => goTo('profile'));
 document.getElementById('see-all-rooms').addEventListener('click', (e) => { e.preventDefault(); goTo('explore'); });
 document.getElementById('banner-plus').addEventListener('click', () => goTo('plus'));
@@ -759,29 +772,33 @@ document.getElementById('game-search').addEventListener('input', (e) => {
   });
 });
 
-// ===========================
-// EXPLORE TABS
-// ===========================
-document.querySelectorAll('.tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    const tabId = tab.dataset.tab;
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    document.getElementById(`tab-${tabId}`).classList.add('active');
+// 카테고리 필터
+let activeCategoryFilter = '전체';
+document.querySelectorAll('.cat-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    activeCategoryFilter = chip.textContent.trim();
+    applyExploreFilter();
   });
 });
 
-document.querySelectorAll('#tab-rooms .join-btn').forEach(btn => {
-  btn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    btn.textContent = '완료 ✓';
-    btn.style.background = 'var(--green)';
-    showToast('✅ 참여 신청 완료!');
+function applyExploreFilter() {
+  const container = document.querySelector('.explore-list');
+  if (!container) return;
+  const cards = container.querySelectorAll('.match-card');
+  if (cards.length === 0) return;
+  const cat = activeCategoryFilter;
+  cards.forEach(card => {
+    if (cat === '전체') { card.style.display = ''; return; }
+    const gameName = (card.querySelector('.game-tag')?.textContent || '').replace(/\p{Emoji}/gu,'').trim();
+    const genre = GAME_DB[gameName]?.genre || '';
+    card.style.display = genre.includes(cat) ? '' : 'none';
   });
-});
+}
 
-document.getElementById('filter-btn').addEventListener('click', () => showToast('🔍 필터 기능 준비 중'));
+document.getElementById('filter-btn').addEventListener('click', () => showToast('카테고리 칩을 선택해 필터링하세요 👆'));
+
 
 // Explore cards → match
 document.querySelectorAll('.explore-card').forEach(card => {
@@ -796,25 +813,46 @@ document.querySelectorAll('.explore-card').forEach(card => {
 // ===========================
 async function openChatroom(roomId) {
   // 이벤트 객체가 넘어온 경우 방어 로직
-  if (roomId && typeof roomId === 'object') {
-    roomId = null;
-  }
+  if (roomId && typeof roomId === 'object') roomId = null;
   currentRoomId = roomId || 'global';
+
+  // 채팅방 제목 설정
+  const titleEl = document.getElementById('chatroom-title');
+  if (titleEl) {
+    if (roomId && isSupabaseConfigured()) {
+      // DB에서 방 제목 불러오기
+      const room = loadedRooms?.find(r => r.id === roomId);
+      if (room) {
+        titleEl.textContent = room.title || '채팅방';
+      } else {
+        // loadedRooms에 없을 경우 직접 조회
+        window.supabaseClient.from('rooms').select('title').eq('id', roomId).single()
+          .then(({ data }) => { if (data) titleEl.textContent = data.title; });
+        titleEl.textContent = '채팅방';
+      }
+    } else {
+      titleEl.textContent = '채팅방';
+    }
+  }
+
   const overlay = document.getElementById('chatroom');
   overlay.classList.remove('hidden');
   overlay.style.display = 'flex';
   requestAnimationFrame(() => overlay.classList.add('show'));
+
+  // 기존 메시지 비우고 로드
+  document.getElementById('chat-messages').innerHTML = '';
   scrollChatToBottom();
 
-  // ✅ 채팅방 진입 시 즉시 읽음 처리 (배지 초기화)
+  // 읽음 처리
   await markRoomAsRead(currentRoomId);
 
-  // 실시간 채팅 구독 시작 (방별로)
+  // 실시간 채팅 구독
   listenToChatUpdates(currentRoomId, async (newMsg) => {
     appendChatBubble({ text: newMsg.text, isMe: false, sender: newMsg.sender_name });
-    // 채팅방 열려있으면 새 메시지도 즉시 읽음 처리
     await markRoomAsRead(currentRoomId);
   });
+
   // 기존 메시지 로드
   if (isSupabaseConfigured() && currentRoomId !== 'global') loadChatHistory(currentRoomId);
 }
@@ -1173,8 +1211,9 @@ document.getElementById('si-version').addEventListener('click', () =>
 document.getElementById('si-logout').addEventListener('click', async () => {
   if (isSupabaseConfigured()) await window.supabaseClient.auth.signOut();
   localStorage.removeItem('bw_user');
+  localStorage.removeItem('bw_onboarded');
   showToast('🚪 로그아웃 됐습니다');
-  setTimeout(() => goTo('splash'), 1200);
+  setTimeout(() => { currentUser = null; currentProfile = null; goTo('splash'); }, 1200);
 });
 
 // ── 회원탈퇴 ──
@@ -1495,12 +1534,45 @@ setInterval(() => {
 let currentAvatarColor = 'linear-gradient(135deg,#3B82F6,#8B5CF6)';
 
 function openEditSheet() {
-  document.getElementById('edit-sheet').classList.remove('hidden');
-  // Sync current name
-  const nameEl = document.getElementById('ef-name');
-  const bioEl  = document.getElementById('ef-bio');
-  updateCount('ef-name', 'ef-name-count', 16);
-  updateCount('ef-bio', 'ef-bio-count', 60);
+  const sheet = document.getElementById('edit-sheet');
+  if (!sheet) return;
+
+  // 현재 프로필 값으로 폼 채우기
+  const nameEl   = document.getElementById('ef-name');
+  const handleEl = document.getElementById('ef-handle');
+  const bioEl    = document.getElementById('ef-bio');
+
+  if (nameEl   && currentProfile?.nickname) nameEl.value   = currentProfile.nickname;
+  if (handleEl && currentProfile?.handle)   handleEl.value = currentProfile.handle;
+  if (bioEl    && currentProfile?.bio)      bioEl.value    = currentProfile.bio;
+
+  // 현재 지역 칩 활성화
+  if (currentProfile?.area) {
+    document.querySelectorAll('.edit-select-chip').forEach(c => {
+      c.classList.toggle('active', c.dataset.area === currentProfile.area);
+    });
+  }
+
+  // 즐겨하는 게임 pills 채우기
+  if (currentProfile?.favorite_games?.length) {
+    const tagInput = document.getElementById('game-tag-input');
+    const addBtn   = document.getElementById('pill-add-btn');
+    if (tagInput && addBtn) {
+      tagInput.querySelectorAll('.game-tag-pill').forEach(p => p.remove());
+      currentProfile.favorite_games.forEach(g => {
+        const pill = document.createElement('div');
+        pill.className = 'game-tag-pill';
+        pill.dataset.g = g;
+        pill.innerHTML = `${GAME_EMOJIS[g] || '🎮'} ${g} <span class="pill-x">×</span>`;
+        tagInput.insertBefore(pill, addBtn);
+      });
+    }
+  }
+
+  updateCount('ef-name',   'ef-name-count',   16);
+  updateCount('ef-bio',    'ef-bio-count',     60);
+
+  sheet.classList.remove('hidden');
 }
 function closeEditSheet() {
   document.getElementById('edit-sheet').classList.add('hidden');
@@ -1650,12 +1722,16 @@ document.getElementById('withdraw-cancel').addEventListener('click', () => {
 document.getElementById('withdraw-confirm').addEventListener('click', async () => {
   document.getElementById('withdraw-modal').classList.add('hidden');
   if (isSupabaseConfigured() && currentUser) {
-    // Supabase 계정 삭제 (admin 권한 필요 - 클라이언트에서는 signOut만 가능)
     await window.supabaseClient.auth.signOut();
   }
   localStorage.clear();
+  currentUser = null;
+  currentProfile = null;
   showToast('회원탈퇴가 완료되었습니다. 안녕히 가세요.');
-  setTimeout(() => goTo('splash'), 1500);
+  setTimeout(() => {
+    // 앱을 완전히 리셋하기 위해 페이지 새로고침
+    window.location.reload();
+  }, 1500);
 });
 
 function openTermsModal(type) {
@@ -2357,15 +2433,25 @@ async function renderDynamicRooms() {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
       const roomId = btn.dataset.roomId;
+      if (!currentUser) { showToast('로그인 후 이용 가능합니다'); return; }
       const ok = await joinRoomInBackend(roomId);
       if (ok) {
         btn.textContent = '참여 완료 ✓';
         btn.style.background = 'var(--green)';
-        showToast('✅ 모임 참여 완료!');
-        setTimeout(() => renderDynamicRooms(), 1000);
+        btn.style.boxShadow = 'none';
+        showToast('✅ 모임 참여 완료! 채팅방에서 인사하세요 😊');
+        setTimeout(() => renderDynamicRooms(), 1200);
       }
     });
   });
+
+  // Explore 탭 전환
+  document.querySelectorAll('.tab').forEach(tab => {
+    // 이미 바인딩된 이벤트 방지용 (클론)
+  });
+
+  // 렌더 후 카테고리 필터 재적용
+  applyExploreFilter();
 }
 
 // ── 앱 초기화 ──
