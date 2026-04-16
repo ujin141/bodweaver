@@ -609,6 +609,7 @@ button { font-family: var(--font-body); }
 .dist-pill {
   display: inline-flex;
   align-items: center;
+  align-self: flex-start;
   gap: 4px;
   background: linear-gradient(90deg, rgba(59,130,246,0.18), rgba(139,92,246,0.12));
   border: 1px solid rgba(59,130,246,0.25);
@@ -617,6 +618,7 @@ button { font-family: var(--font-body); }
   font-weight: 700;
   padding: 4px 12px;
   border-radius: var(--radius-full);
+  width: fit-content;
 }
 
 /* 하단 행: 아바타 + 참여 버튼 */
