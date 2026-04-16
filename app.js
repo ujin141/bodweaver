@@ -2113,29 +2113,29 @@ async function renderActivityFeed() {
       .order('created_at', { ascending: false })
       .limit(6);
     if (!data || data.length === 0) {
-      feedEl.innerHTML = '<p style="text-align:center;padding:10px;color:#888;font-size:13px;">\ucd5c\uadfc \ud65c\ub3d9\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.</p>';
+      feedEl.innerHTML = '<p style="text-align:center;padding:10px;color:#888;font-size:13px;">최근 활동이 없습니다.</p>';
       return;
     }
-    const actionLabel = { join: '\ucc38\uc5ec', create: '\uc0dd\uc131', full: '\ub9c8\uac10', review: '\ud6c4\uae30' };
+    const actionLabel = { join: '참여', create: '생성', full: '마감', review: '후기' };
     const actionCls   = { join: 'act-join', create: 'act-create', full: 'act-full', review: 'act-create' };
     const now = Date.now();
     feedEl.innerHTML = data.map(item => {
       const ms = now - new Date(item.created_at).getTime();
       const m  = Math.floor(ms / 60000);
-      const timeStr = m < 1 ? '\ubc29\uae08' : m < 60 ? `${m}\ubd84 \uc804` : m < 1440 ? `${Math.floor(m/60)}\uc2dc\uac04 \uc804` : `${Math.floor(m/1440)}\uc77c \uc804`;
+      const timeStr = m < 1 ? '방금' : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.floor(m/60)}시간 전` : `${Math.floor(m/1440)}일 전`;
       const initial = item.actor_name?.[0] || '?';
       const action  = actionLabel[item.action] || item.action;
       const cls     = actionCls[item.action]   || 'act-join';
       return `<div class="activity-item">
         <div class="ava xs" style="background:linear-gradient(135deg,#3B82F6,#8B5CF6)">${initial}</div>
-        <p><strong>${item.actor_name}</strong>\ub2d8\uc774 ${item.target ? `${item.target}\uc5d0 ` : ''}<span class="${cls}">${action}</span>\ud588\uc5b4\uc694</p>
+        <p><strong>${item.actor_name}</strong>님이 ${item.target ? `${item.target}에 ` : ''}<span class="${cls}">${action}</span>했어요</p>
         <span class="act-time">${timeStr}</span>
       </div>`;
     }).join('');
-  } catch(e) { /* \ubb34\uc2dc */ }
+  } catch(e) { /* 무시 */ }
 }
 
-// ── 9. \ud6c4\uae30 \uc81c\ucd9c ──
+// ── 9. 후기 제출 ──
 async function submitReview(revieweeId, roomId, rating, tags, comment) {
   if (!isSupabaseConfigured() || !currentUser) return false;
   try {
@@ -2307,31 +2307,39 @@ async function renderDynamicRooms() {
   }
 
   const htmlString = rooms.map(room => {
-    // 거리 뱃지 계산
+    const cls = room.status_cls || 'open';
     const distBadge = room._distKm !== null && room._distKm !== undefined
-      ? `<span class="dist-badge">📍 ${formatDistance(room._distKm)}</span>`
-      : `<span class="dist-badge dist-unknown">📍 ${room.place || '장소 미정'}</span>`;
+      ? `<span class="dist-pill">📍 ${formatDistance(room._distKm)}</span>`
+      : `<span class="dist-pill">📍 ${room.place || '장소 미정'}</span>`;
+
+    const filled = Math.min(room.members || 1, room.max_members || 4);
+    const empty  = Math.max(0, (room.max_members || 4) - filled);
+    const colors = ['#3B82F6','#8B5CF6','#10B981','#F59E0B'];
+    const avatars = Array.from({ length: Math.min(filled, 3) }, (_, i) =>
+      `<div class="ava overlap" style="background:${colors[i % colors.length]};width:26px;height:26px;font-size:11px">👤</div>`
+    ).join('');
+    const moreTag  = filled > 3  ? `<div class="ava-more">+${filled - 3}</div>` : '';
+    const emptyTag = filled <= 3 && empty > 0 ? `<div class="ava-more" style="background:rgba(255,255,255,0.05);color:#666">+${empty}</div>` : '';
 
     return `
-    <div class="match-card" data-id="${room.id}">
-      <div class="match-card-header">
-        <span class="game-tag">${room.game}</span>
-        <span class="match-status ${room.status_cls || 'open'}">${room.status || '모집중'}</span>
+    <div class="match-card ${cls}" data-id="${room.id}">
+      <div class="match-card-top"></div>
+      <div class="match-card-body">
+        <div class="match-card-header">
+          <span class="game-tag">${room.game}</span>
+          <span class="match-status ${cls}">${room.status || '모집중'}</span>
+        </div>
+        <h3>${room.title}</h3>
+        <div class="match-meta">
+          ${distBadge}
+          <span>👥 ${room.members || 1}/${room.max_members || 4}명 &nbsp;·&nbsp; ⚡ ${room.level || '모두 환영'}</span>
+          <span>🕐 ${room.time || '시간 미정'}</span>
+        </div>
+        <div class="match-card-footer">
+          <div class="match-avatars">${avatars}${moreTag}${emptyTag}</div>
+          <button class="join-btn" data-room-id="${room.id}">함께하기</button>
+        </div>
       </div>
-      <h3>${room.title}</h3>
-      <div class="match-meta">
-        ${distBadge}
-        <span>👥 ${room.members || 1}/${room.max_members || 4}명</span>
-      </div>
-      <div class="match-meta" style="margin-top:4px">
-        <span>🕐 ${room.time || '시간 미정'}</span>
-        <span>⚡ ${room.level || '모두 환영'}</span>
-      </div>
-      <div class="match-avatars">
-        <div class="ava" style="background:#8B5CF6">✨</div>
-        <div class="ava ava-empty">+${Math.max(0, (room.max_members || 4) - (room.members || 1))}</div>
-      </div>
-      <button class="btn-sm-primary join-btn" data-room-id="${room.id}">함께하기</button>
     </div>`;
   }).join('');
 

@@ -497,47 +497,137 @@ button { font-family: var(--font-body); }
 /* Match Cards */
 .cards-scroll {
   display: flex;
-  gap: 14px;
+  gap: 16px;
   overflow-x: auto;
-  padding-bottom: 8px;
+  padding: 4px 2px 12px;
   scrollbar-width: none;
-  margin-left: -2px;
-  padding-left: 2px;
 }
 .cards-scroll::-webkit-scrollbar { display: none; }
+
 .match-card {
-  min-width: 220px;
-  background: var(--gray-800);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: var(--radius-lg);
-  padding: 18px;
+  min-width: 230px;
+  position: relative;
+  background: linear-gradient(145deg, #131313 0%, #0d0d0d 100%);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 20px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s ease;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+}
+.match-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(59,130,246,0.4) 0%, rgba(139,92,246,0.2) 50%, transparent 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.match-card:hover::before { opacity: 1; }
+.match-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(59,130,246,0.18), 0 4px 12px rgba(0,0,0,0.6);
+}
+.match-card:active { transform: scale(0.97); }
+
+/* 카드 상단 컬러 바 */
+.match-card-top {
+  height: 4px;
+  background: linear-gradient(90deg, var(--blue) 0%, var(--purple) 100%);
+  flex-shrink: 0;
+}
+.match-card.soon .match-card-top {
+  background: linear-gradient(90deg, var(--orange) 0%, #f97316 100%);
+}
+.match-card.full .match-card-top {
+  background: linear-gradient(90deg, var(--gray-500) 0%, var(--gray-400) 100%);
+}
+
+.match-card-body {
+  padding: 16px 18px 18px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  cursor: pointer;
-  transition: border-color 0.2s, transform 0.2s;
 }
-.match-card:hover { border-color: rgba(59,130,246,0.3); transform: translateY(-2px); }
+
 .match-card-header { display: flex; justify-content: space-between; align-items: center; }
 .game-tag {
-  background: rgba(59,130,246,0.1);
+  background: rgba(59,130,246,0.12);
   color: var(--blue-light);
   font-size: 11px;
   font-weight: 700;
   padding: 4px 10px;
   border-radius: var(--radius-full);
+  border: 1px solid rgba(59,130,246,0.2);
 }
 .match-status {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.3px;
+}
+.match-status.open {
+  background: rgba(16,185,129,0.12);
+  color: #34d399;
+  border: 1px solid rgba(16,185,129,0.25);
+}
+.match-status.soon {
+  background: rgba(245,158,11,0.12);
+  color: var(--orange);
+  border: 1px solid rgba(245,158,11,0.25);
+}
+.match-status.full {
+  background: rgba(255,255,255,0.06);
+  color: var(--gray-300);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.match-card h3 {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #f1f1f1;
+}
+.match-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--gray-300);
+}
+.match-meta span { display: flex; align-items: center; gap: 5px; }
+
+/* 거리 배지 (파란 pill) */
+.dist-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(90deg, rgba(59,130,246,0.18), rgba(139,92,246,0.12));
+  border: 1px solid rgba(59,130,246,0.25);
+  color: var(--blue-light);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
   border-radius: var(--radius-full);
 }
-.match-status.open { background: rgba(16,185,129,0.15); color: var(--green); }
-.match-status.soon { background: rgba(245,158,11,0.15); color: var(--orange); }
-.match-card h3 { font-size: 14px; font-weight: 700; line-height: 1.4; }
-.match-meta { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--gray-300); }
-.match-avatars { display: flex; gap: 4px; }
+
+/* 하단 행: 아바타 + 참여 버튼 */
+.match-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2px;
+}
+
+.match-avatars { display: flex; align-items: center; gap: -4px; }
 .ava {
   width: 30px; height: 30px;
   border-radius: var(--radius-full);
@@ -550,18 +640,51 @@ button { font-family: var(--font-body); }
 }
 .ava.xs { width: 24px; height: 24px; font-size: 10px; }
 .ava.lg { width: 52px; height: 52px; font-size: 20px; }
-.ava.overlap { margin-left: -8px; border: 2px solid var(--gray-800); }
+.ava.overlap { margin-left: -8px; border: 2px solid #0d0d0d; }
 .ava-empty {
   width: 30px; height: 30px;
   border-radius: var(--radius-full);
-  background: var(--gray-600);
+  background: var(--gray-700);
   color: var(--gray-300);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
+  border: 2px solid #0d0d0d;
 }
+/* +N 카운터 뱃지 */
+.ava-more {
+  background: rgba(59,130,246,0.18);
+  color: var(--blue-light);
+  font-size: 10px;
+  font-weight: 700;
+  width: 28px; height: 28px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -6px;
+  border: 2px solid #0d0d0d;
+}
+
+/* 참여 버튼 (카드 내 작은 버튼) */
+.join-btn {
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius-full);
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s;
+  white-space: nowrap;
+  box-shadow: 0 2px 10px rgba(59,130,246,0.3);
+}
+.join-btn:hover { opacity: 0.9; }
+.join-btn:active { transform: scale(0.94); }
+
 
 /* Categories */
 .category-grid {
