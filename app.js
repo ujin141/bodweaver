@@ -795,7 +795,7 @@ document.querySelectorAll('.explore-card').forEach(card => {
 // ===========================
 // CHAT & CHATROOM
 // ===========================
-function openChatroom(roomId) {
+async function openChatroom(roomId) {
   // 이벤트 객체가 넘어온 경우 방어 로직
   if (roomId && typeof roomId === 'object') {
     roomId = null;
@@ -806,20 +806,80 @@ function openChatroom(roomId) {
   overlay.style.display = 'flex';
   requestAnimationFrame(() => overlay.classList.add('show'));
   scrollChatToBottom();
+
+  // ✅ 채팅방 진입 시 즉시 읽음 처리 (배지 초기화)
+  await markRoomAsRead(currentRoomId);
+
   // 실시간 채팅 구독 시작 (방별로)
-  listenToChatUpdates(currentRoomId, (newMsg) => {
+  listenToChatUpdates(currentRoomId, async (newMsg) => {
     appendChatBubble({ text: newMsg.text, isMe: false, sender: newMsg.sender_name });
+    // 채팅방 열려있으면 새 메시지도 즉시 읽음 처리
+    await markRoomAsRead(currentRoomId);
   });
   // 기존 메시지 로드
   if (isSupabaseConfigured() && currentRoomId !== 'global') loadChatHistory(currentRoomId);
 }
 
-function closeChatroom() {
+async function closeChatroom() {
+  // 채팅방 닫을 때도 읽음 처리
+  if (currentRoomId && currentRoomId !== 'global') {
+    await markRoomAsRead(currentRoomId);
+  }
   const overlay = document.getElementById('chatroom');
   overlay.classList.remove('show');
   setTimeout(() => {
     overlay.classList.add('hidden');
+    overlay.style.display = '';
   }, 350);
+}
+
+// ✅ 읽음 처리 함수 — 해당 방의 메시지 총 개수를 localStorage에 저장 후 배지 갱신
+async function markRoomAsRead(roomId) {
+  if (!roomId || roomId === 'global' || !isSupabaseConfigured()) return;
+  try {
+    const { count } = await window.supabaseClient
+      .from('messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('room_id', roomId);
+    if (count !== null) {
+      localStorage.setItem(`bw_chat_read_${roomId}`, count);
+    }
+  } catch (e) { /* 무시 */ }
+  // 배지 즉시 갱신
+  updateNavChatBadge();
+}
+
+// ✅ 네비게이션 배지만 빠르게 갱신
+async function updateNavChatBadge() {
+  if (!isSupabaseConfigured() || !currentUser) {
+    document.querySelectorAll('.nav-badge').forEach(b => b.style.display = 'none');
+    return;
+  }
+  try {
+    const { data: myRooms } = await window.supabaseClient
+      .from('room_members')
+      .select('room_id')
+      .eq('user_id', currentUser.id)
+      .eq('status', 'joined');
+    if (!myRooms || myRooms.length === 0) {
+      document.querySelectorAll('.nav-badge').forEach(b => b.style.display = 'none');
+      return;
+    }
+    const roomIds = myRooms.map(m => m.room_id);
+    const { count: totalMsgs } = await window.supabaseClient
+      .from('messages')
+      .select('id', { count: 'exact', head: true })
+      .in('room_id', roomIds);
+    let readTotal = 0;
+    roomIds.forEach(rid => {
+      readTotal += parseInt(localStorage.getItem(`bw_chat_read_${rid}`) || '0');
+    });
+    const unread = Math.max(0, (totalMsgs || 0) - readTotal);
+    document.querySelectorAll('.nav-badge').forEach(b => {
+      if (unread > 0) { b.style.display = 'inline-block'; b.textContent = unread; }
+      else { b.style.display = 'none'; }
+    });
+  } catch (e) { /* 무시 */ }
 }
 
 // document.getElementById('open-chatroom')?.addEventListener('click', openChatroom); // Dynamic binding used now
