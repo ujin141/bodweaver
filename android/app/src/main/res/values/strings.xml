@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">BODWEAVER</string>
+    <string name="title_activity_main">BODWEAVER</string>
+    <string name="package_name">com.bodweaver.app</string>
+    <string name="custom_url_scheme">com.bodweaver.app</string>
+</resources>
