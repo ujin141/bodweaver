@@ -90,6 +90,139 @@
       </div>
     </div>
 
+    <!-- ===================== ONBOARDING (프로필 첫 설정) ===================== -->
+    <div id="screen-onboarding" class="screen">
+      <div class="onboard-wrap">
+        <!-- 진행 표시 -->
+        <div class="onboard-steps">
+          <div class="onboard-step active" id="ostep-1"></div>
+          <div class="onboard-step" id="ostep-2"></div>
+          <div class="onboard-step" id="ostep-3"></div>
+        </div>
+
+        <!-- STEP 1: 아바타 & 닉네임 -->
+        <div class="onboard-page active" id="opage-1">
+          <div class="onboard-header">
+            <div class="onboard-emoji">🎉</div>
+            <h2 class="onboard-title">보드위버에 오신 걸<br/>환영해요!</h2>
+            <p class="onboard-desc">나를 소개할 프로필을 만들어볼게요</p>
+          </div>
+
+          <!-- 아바타 선택 -->
+          <div class="avatar-picker-wrap">
+            <div class="avatar-picker-main" id="onboard-avatar-display">🎮</div>
+            <p class="avatar-picker-label">아바타 선택</p>
+            <div class="avatar-emoji-grid" id="avatar-emoji-grid">
+              <span class="av-opt active" data-av="🎮">🎮</span>
+              <span class="av-opt" data-av="🧩">🧩</span>
+              <span class="av-opt" data-av="🃏">🃏</span>
+              <span class="av-opt" data-av="🎲">🎲</span>
+              <span class="av-opt" data-av="♟️">♟️</span>
+              <span class="av-opt" data-av="🦄">🦄</span>
+              <span class="av-opt" data-av="🐉">🐉</span>
+              <span class="av-opt" data-av="🌟">🌟</span>
+              <span class="av-opt" data-av="🔥">🔥</span>
+              <span class="av-opt" data-av="⚡">⚡</span>
+              <span class="av-opt" data-av="🎭">🎭</span>
+              <span class="av-opt" data-av="🤖">🤖</span>
+            </div>
+          </div>
+
+          <!-- 닉네임 -->
+          <div class="onboard-field">
+            <label class="onboard-label">닉네임 <span class="required">*</span></label>
+            <input type="text" id="ob-nickname" class="onboard-input" placeholder="보드게임 닉네임" maxlength="16" />
+            <div class="onboard-hint">최대 16자 · 특수문자 제외</div>
+          </div>
+
+          <!-- @핸들 -->
+          <div class="onboard-field">
+            <label class="onboard-label">@아이디</label>
+            <div class="onboard-input-prefix-wrap">
+              <span class="input-prefix">@</span>
+              <input type="text" id="ob-handle" class="onboard-input with-prefix" placeholder="영문소문자+숫자" maxlength="20" />
+            </div>
+            <div class="onboard-hint">나중에 변경 가능해요</div>
+          </div>
+
+          <button class="btn-primary onboard-next-btn" id="ob-next-1">다음 →</button>
+        </div>
+
+        <!-- STEP 2: 지역 & 한줄 소개 -->
+        <div class="onboard-page" id="opage-2">
+          <div class="onboard-header">
+            <div class="onboard-emoji">📍</div>
+            <h2 class="onboard-title">어디서 게임해요?</h2>
+            <p class="onboard-desc">가까운 모임을 추천해드릴게요</p>
+          </div>
+
+          <div class="onboard-field">
+            <label class="onboard-label">주 활동 지역 <span class="required">*</span></label>
+            <div class="loc-chip-grid">
+              <span class="loc-chip active" data-loc="강남">강남</span>
+              <span class="loc-chip" data-loc="홍대">홍대</span>
+              <span class="loc-chip" data-loc="신촌">신촌</span>
+              <span class="loc-chip" data-loc="건대">건대</span>
+              <span class="loc-chip" data-loc="이태원">이태원</span>
+              <span class="loc-chip" data-loc="종로">종로</span>
+              <span class="loc-chip" data-loc="수원">수원</span>
+              <span class="loc-chip" data-loc="인천">인천</span>
+              <span class="loc-chip" data-loc="부산">부산</span>
+              <span class="loc-chip" data-loc="대구">대구</span>
+              <span class="loc-chip" data-loc="대전">대전</span>
+              <span class="loc-chip" data-loc="광주">광주</span>
+            </div>
+          </div>
+
+          <div class="onboard-field" style="margin-top:20px">
+            <label class="onboard-label">한 줄 소개</label>
+            <input type="text" id="ob-bio" class="onboard-input" placeholder="ex. 전략 게임 좋아하는 직장인" maxlength="60" />
+            <div class="onboard-hint">최대 60자</div>
+          </div>
+
+          <div class="onboard-btn-row">
+            <button class="btn-outline onboard-back-btn" id="ob-back-2">← 이전</button>
+            <button class="btn-primary onboard-next-btn flex-1" id="ob-next-2">다음 →</button>
+          </div>
+        </div>
+
+        <!-- STEP 3: 좋아하는 게임 -->
+        <div class="onboard-page" id="opage-3">
+          <div class="onboard-header">
+            <div class="onboard-emoji">🎲</div>
+            <h2 class="onboard-title">좋아하는 게임을<br/>골라봐요!</h2>
+            <p class="onboard-desc">최대 5개까지 선택 가능해요</p>
+          </div>
+
+          <div class="onboard-game-grid" id="ob-game-grid">
+            <div class="ob-game-chip" data-g="스플렌더">✨ 스플렌더</div>
+            <div class="ob-game-chip" data-g="카탄">🏝 카탄</div>
+            <div class="ob-game-chip" data-g="아줄">🔷 아줄</div>
+            <div class="ob-game-chip" data-g="딕싯">🎨 딕싯</div>
+            <div class="ob-game-chip" data-g="루미큐브">🔢 루미큐브</div>
+            <div class="ob-game-chip" data-g="뱅">🔫 뱅</div>
+            <div class="ob-game-chip" data-g="클루">🔍 클루</div>
+            <div class="ob-game-chip" data-g="팬데믹">🧬 팬데믹</div>
+            <div class="ob-game-chip" data-g="할리갈리">🍓 할리갈리</div>
+            <div class="ob-game-chip" data-g="주사위 도시">🎰 주사위 도시</div>
+            <div class="ob-game-chip" data-g="테라포밍 마스">🌌 테라포밍 마스</div>
+            <div class="ob-game-chip" data-g="7원더스">🏛 7원더스</div>
+            <div class="ob-game-chip" data-g="마라케시">🐫 마라케시</div>
+            <div class="ob-game-chip" data-g="블러킷">🎯 블러킷</div>
+            <div class="ob-game-chip" data-g="윙스팬">🦜 윙스팬</div>
+            <div class="ob-game-chip" data-g="어쩌다 악당">😈 어쩌다 악당</div>
+          </div>
+
+          <div class="onboard-btn-row" style="margin-top:24px">
+            <button class="btn-outline onboard-back-btn" id="ob-back-3">← 이전</button>
+            <button class="btn-primary onboard-next-btn flex-1" id="ob-finish">
+              <span id="ob-finish-text">완료!</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ===================== HOME ===================== -->
     <div id="screen-home" class="screen">
       <header class="top-bar">
@@ -900,6 +1033,154 @@
           <div class="picker-item" data-g="마피아">🎭 마피아</div>
           <div class="picker-item" data-g="다빈치코드">🔢 다빈치코드</div>
           <div class="picker-item" data-g="타임라인">⏱ 타임라인</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== LOCATION SHEET ===================== -->
+    <div id="location-sheet" class="bottom-sheet hidden">
+      <div class="sheet-backdrop" id="location-backdrop"></div>
+      <div class="sheet-panel" style="max-height:60vh">
+        <div class="sheet-handle"></div>
+        <div class="drawer-header"><h2>📍 내 위치 변경</h2><button class="drawer-close" id="location-close">✕</button></div>
+        <div style="padding:0 20px 24px">
+          <p style="font-size:13px;color:#64748B;margin-bottom:16px;">자주 모임하는 지역을 선택하세요</p>
+          <div id="location-chips" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px">
+            <div class="edit-select-chip loc-chip" data-loc="강남">🏙 강남</div>
+            <div class="edit-select-chip loc-chip" data-loc="홍대">🎸 홍대</div>
+            <div class="edit-select-chip loc-chip" data-loc="신촌">🏫 신촌</div>
+            <div class="edit-select-chip loc-chip" data-loc="건대">🎓 건대</div>
+            <div class="edit-select-chip loc-chip" data-loc="이태원">🌍 이태원</div>
+            <div class="edit-select-chip loc-chip" data-loc="종로">🏯 종로</div>
+            <div class="edit-select-chip loc-chip" data-loc="수원">🌿 수원</div>
+            <div class="edit-select-chip loc-chip" data-loc="부산">🌊 부산</div>
+            <div class="edit-select-chip loc-chip" data-loc="대구">🌆 대구</div>
+            <div class="edit-select-chip loc-chip" data-loc="대전">🏢 대전</div>
+            <div class="edit-select-chip loc-chip" data-loc="광주">🌸 광주</div>
+            <div class="edit-select-chip loc-chip" data-loc="인천">✈️ 인천</div>
+          </div>
+          <button class="btn-primary btn-full" id="location-save-btn">✅ 이 지역으로 설정</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== RADIUS SHEET ===================== -->
+    <div id="radius-sheet" class="bottom-sheet hidden">
+      <div class="sheet-backdrop" id="radius-backdrop"></div>
+      <div class="sheet-panel" style="max-height:50vh">
+        <div class="sheet-handle"></div>
+        <div class="drawer-header"><h2>📏 위치 반경 설정</h2><button class="drawer-close" id="radius-close">✕</button></div>
+        <div style="padding:0 20px 24px">
+          <p style="font-size:13px;color:#64748B;margin-bottom:16px;">내 위치에서 얼마나 먼 모임까지 보여드릴까요?</p>
+          <div id="radius-options" style="display:flex;flex-direction:column;gap:12px">
+            <div class="radius-option" data-km="3"><span>🚶 3km</span><span style="color:#64748B;font-size:13px">도보 이동 가능</span></div>
+            <div class="radius-option active" data-km="5"><span>🚌 5km</span><span style="color:#64748B;font-size:13px">대중교통 10분</span></div>
+            <div class="radius-option" data-km="10"><span>🚗 10km</span><span style="color:#64748B;font-size:13px">차량 15분</span></div>
+            <div class="radius-option" data-km="20"><span>🗺 20km</span><span style="color:#64748B;font-size:13px">광역 범위</span></div>
+            <div class="radius-option" data-km="50"><span>🌏 50km</span><span style="color:#64748B;font-size:13px">전국 어디든</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== BLOCK MANAGEMENT SHEET ===================== -->
+    <div id="block-sheet" class="bottom-sheet hidden">
+      <div class="sheet-backdrop" id="block-backdrop"></div>
+      <div class="sheet-panel" style="max-height:65vh">
+        <div class="sheet-handle"></div>
+        <div class="drawer-header"><h2>🚫 블록 관리</h2><button class="drawer-close" id="block-close">✕</button></div>
+        <div id="block-list" style="padding:0 20px 24px">
+          <p style="font-size:13px;color:#64748B;margin-bottom:16px;">차단한 사용자가 없으면 모든 사람의 모임이 보입니다.</p>
+          <div id="blocked-users-list"></div>
+          <p id="no-blocked-msg" style="text-align:center;color:#475569;font-size:14px;padding:20px 0">차단한 사용자가 없습니다 👍</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PHONE CHANGE MODAL ===================== -->
+    <div id="phone-modal" class="modal-overlay hidden">
+      <div class="modal-card" style="padding:28px;max-width:340px;width:90%">
+        <h3 style="color:#F1F5F9;margin-bottom:8px">📱 전화번호 변경</h3>
+        <p style="font-size:13px;color:#64748B;margin-bottom:20px">새로운 전화번호를 입력해 주세요</p>
+        <input type="tel" id="phone-input-new" class="edit-input" placeholder="+82 010-0000-0000" style="width:100%;margin-bottom:12px">
+        <div id="phone-otp-row" class="hidden" style="margin-bottom:12px">
+          <input type="number" id="phone-otp-input" class="edit-input" placeholder="인증코드 6자리" style="width:100%">
+        </div>
+        <div style="display:flex;gap:10px;margin-top:4px">
+          <button class="btn-outline flex-1" id="phone-modal-cancel">취소</button>
+          <button class="btn-primary flex-1" id="phone-modal-send">인증코드 전송</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== EMAIL CHANGE MODAL ===================== -->
+    <div id="email-modal" class="modal-overlay hidden">
+      <div class="modal-card" style="padding:28px;max-width:340px;width:90%">
+        <h3 style="color:#F1F5F9;margin-bottom:8px">✉️ 이메일 변경</h3>
+        <p style="font-size:13px;color:#64748B;margin-bottom:20px">새로운 이메일을 입력해 주세요</p>
+        <input type="email" id="email-input-new" class="edit-input" placeholder="example@email.com" style="width:100%;margin-bottom:12px">
+        <div style="display:flex;gap:10px;margin-top:4px">
+          <button class="btn-outline flex-1" id="email-modal-cancel">취소</button>
+          <button class="btn-primary flex-1" id="email-modal-save">변경하기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== FAQ MODAL ===================== -->
+    <div id="faq-modal" class="modal-overlay hidden">
+      <div class="modal-card" style="padding:0;max-width:480px;width:96%;max-height:80vh;overflow:hidden;display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid #1E293B">
+          <h3 style="color:#F1F5F9">❓ 자주 묻는 질문</h3>
+          <button class="drawer-close" id="faq-close">✕</button>
+        </div>
+        <div style="overflow-y:auto;padding:20px 24px">
+          <div class="faq-item">
+            <div class="faq-q">Q. 모임은 어떻게 만드나요?</div>
+            <div class="faq-a">홈 화면 하단의 <strong>매칭 만들기</strong> 버튼을 누르거나, 탐색 탭에서 <strong>+ 새 방 만들기</strong>를 클릭하시면 됩니다.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q">Q. 위버 플러스는 무엇인가요?</div>
+            <div class="faq-a">위버 플러스는 유료 구독 서비스입니다. 무제한 매칭 참여, 플러스 전용 모임방 입장, 프리미엄 배지 등의 혜택을 드립니다.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q">Q. 불쾌한 사용자를 차단할 수 있나요?</div>
+            <div class="faq-a">채팅 화면 상단의 <strong>신고/차단 버튼</strong>을 이용하거나, 설정 → 블록 관리에서 차단된 사용자를 관리할 수 있습니다.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q">Q. 후기는 어떻게 작성하나요?</div>
+            <div class="faq-a">모임 종료 후 채팅방에서 <strong>평가 버튼</strong>을 클릭해 후기를 남길 수 있습니다. 후기는 상대방의 신뢰 점수에 반영됩니다.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q">Q. 환불 정책이 어떻게 되나요?</div>
+            <div class="faq-a">인앱 결제는 각 스토어(App Store/Google Play) 환불 정책을 따릅니다. 자세한 내용은 서비스 이용약관을 확인해 주세요.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q">Q. 계정을 삭제하면 데이터는 어떻게 되나요?</div>
+            <div class="faq-a">회원탈퇴 시 개인 식별 정보는 즉시 삭제되며, 채팅 기록은 최대 1년 후 자동 삭제됩니다.</div>
+          </div>
+          <div style="text-align:center;margin-top:20px;padding-top:16px;border-top:1px solid #1E293B">
+            <p style="font-size:13px;color:#64748B">더 궁금한 점은 이메일로 문의해 주세요</p>
+            <a href="mailto:ujin141@naver.com" style="color:#3B82F6;font-size:14px">ujin141@naver.com</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== FEEDBACK MODAL ===================== -->
+    <div id="feedback-modal" class="modal-overlay hidden">
+      <div class="modal-card" style="padding:28px;max-width:400px;width:96%">
+        <h3 style="color:#F1F5F9;margin-bottom:8px">📝 개선 의견 보내기</h3>
+        <p style="font-size:13px;color:#64748B;margin-bottom:20px">더 나은 보드위버를 만드는 데 도움을 주세요!</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+          <div class="fb-tag" data-tag="버그">🐛 버그 신고</div>
+          <div class="fb-tag" data-tag="기능">💡 기능 제안</div>
+          <div class="fb-tag" data-tag="UI">🎨 UI 개선</div>
+          <div class="fb-tag" data-tag="기타">💬 기타</div>
+        </div>
+        <textarea id="feedback-text" class="edit-input edit-textarea" placeholder="의견을 자유롭게 적어주세요 (최소 10자)" maxlength="500" style="width:100%;min-height:120px;margin-bottom:12px"></textarea>
+        <div style="display:flex;gap:10px">
+          <button class="btn-outline flex-1" id="feedback-cancel">취소</button>
+          <button class="btn-primary flex-1" id="feedback-send">보내기 📤</button>
         </div>
       </div>
     </div>

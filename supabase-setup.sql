@@ -193,7 +193,7 @@ CREATE TABLE IF NOT EXISTS public.plus_subscriptions (
 
 -- ============================================================
 -- 10. Row Level Security (RLS) 정책 설정
--- 내 데이터는 내가, 공용 데이터는 누구나 읽도록
+-- 중복 실행해도 에러 안 나는 안전한 방식 (DO $$ ... EXCEPTION)
 -- ============================================================
 
 ALTER TABLE public.users             ENABLE ROW LEVEL SECURITY;
@@ -207,72 +207,204 @@ ALTER TABLE public.reports           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.blocks            ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.plus_subscriptions ENABLE ROW LEVEL SECURITY;
 
--- users: 누구나 읽기, 본인만 수정
-CREATE POLICY "users_select_all"   ON public.users FOR SELECT USING (true);
-CREATE POLICY "users_update_self"  ON public.users FOR UPDATE USING (auth.uid() = id);
+DROP POLICY IF EXISTS "users_select_all" ON public.users;
+CREATE POLICY "users_select_all" ON public.users FOR SELECT USING (true);
+DROP POLICY IF EXISTS "users_update_self" ON public.users;
+CREATE POLICY "users_update_self" ON public.users FOR UPDATE USING (auth.uid() = id);
+DROP POLICY IF EXISTS "users_insert_trigger" ON public.users;
+CREATE POLICY "users_insert_trigger" ON public.users FOR INSERT WITH CHECK (true);
 
--- rooms: 누구나 읽기, 로그인 유저는 생성 가능, 본인(방장)만 수정/삭제
-CREATE POLICY "rooms_select_all"   ON public.rooms FOR SELECT USING (true);
-CREATE POLICY "rooms_insert_auth"  ON public.rooms FOR INSERT WITH CHECK (auth.uid() = host_id);
-CREATE POLICY "rooms_update_host"  ON public.rooms FOR UPDATE USING (auth.uid() = host_id);
-CREATE POLICY "rooms_delete_host"  ON public.rooms FOR DELETE USING (auth.uid() = host_id);
+-- rooms
+DROP POLICY IF EXISTS "rooms_select_all" ON public.rooms;
+CREATE POLICY "rooms_select_all" ON public.rooms FOR SELECT USING (true);
+DROP POLICY IF EXISTS "rooms_insert_auth" ON public.rooms;
+CREATE POLICY "rooms_insert_auth" ON public.rooms FOR INSERT WITH CHECK (auth.uid() = host_id);
+DROP POLICY IF EXISTS "rooms_update_host" ON public.rooms;
+CREATE POLICY "rooms_update_host" ON public.rooms FOR UPDATE USING (auth.uid() = host_id);
+DROP POLICY IF EXISTS "rooms_delete_host" ON public.rooms;
+CREATE POLICY "rooms_delete_host" ON public.rooms FOR DELETE USING (auth.uid() = host_id);
 
--- room_members: 누구나 읽기, 로그인 유저 참여 가능
+-- room_members
+DROP POLICY IF EXISTS "room_members_select" ON public.room_members;
 CREATE POLICY "room_members_select" ON public.room_members FOR SELECT USING (true);
+DROP POLICY IF EXISTS "room_members_insert" ON public.room_members;
 CREATE POLICY "room_members_insert" ON public.room_members FOR INSERT WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "room_members_delete" ON public.room_members;
 CREATE POLICY "room_members_delete" ON public.room_members FOR DELETE USING (auth.uid() = user_id);
 
--- messages: 누구나 읽기, 로그인 유저 전송 가능
+-- messages
+DROP POLICY IF EXISTS "messages_select_all" ON public.messages;
 CREATE POLICY "messages_select_all" ON public.messages FOR SELECT USING (true);
+DROP POLICY IF EXISTS "messages_insert_auth" ON public.messages;
 CREATE POLICY "messages_insert_auth" ON public.messages FOR INSERT WITH CHECK (auth.uid() = sender_id);
 
--- notifications: 본인 알림만
-CREATE POLICY "notif_select_self"  ON public.notifications FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "notif_update_self"  ON public.notifications FOR UPDATE USING (auth.uid() = user_id);
+-- notifications
+DROP POLICY IF EXISTS "notif_select_self" ON public.notifications;
+CREATE POLICY "notif_select_self" ON public.notifications FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "notif_update_self" ON public.notifications;
+CREATE POLICY "notif_update_self" ON public.notifications FOR UPDATE USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "notif_insert_system" ON public.notifications;
+CREATE POLICY "notif_insert_system" ON public.notifications FOR INSERT WITH CHECK (true);
 
--- activity_feed: 누구나 읽기
+-- activity_feed
+DROP POLICY IF EXISTS "activity_select_all" ON public.activity_feed;
 CREATE POLICY "activity_select_all" ON public.activity_feed FOR SELECT USING (true);
+DROP POLICY IF EXISTS "activity_insert_auth" ON public.activity_feed;
 CREATE POLICY "activity_insert_auth" ON public.activity_feed FOR INSERT WITH CHECK (auth.uid() = actor_id);
 
--- reviews: 누구나 읽기, 본인이 작성
-CREATE POLICY "reviews_select_all"  ON public.reviews FOR SELECT USING (true);
+-- reviews
+DROP POLICY IF EXISTS "reviews_select_all" ON public.reviews;
+CREATE POLICY "reviews_select_all" ON public.reviews FOR SELECT USING (true);
+DROP POLICY IF EXISTS "reviews_insert_auth" ON public.reviews;
 CREATE POLICY "reviews_insert_auth" ON public.reviews FOR INSERT WITH CHECK (auth.uid() = reviewer_id);
 
--- reports: 본인이 작성한 신고만 볼 수 있음
-CREATE POLICY "reports_insert"     ON public.reports FOR INSERT WITH CHECK (auth.uid() = reporter_id);
-CREATE POLICY "reports_select"     ON public.reports FOR SELECT USING (auth.uid() = reporter_id);
+-- reports
+DROP POLICY IF EXISTS "reports_insert" ON public.reports;
+CREATE POLICY "reports_insert" ON public.reports FOR INSERT WITH CHECK (auth.uid() = reporter_id);
+DROP POLICY IF EXISTS "reports_select" ON public.reports;
+CREATE POLICY "reports_select" ON public.reports FOR SELECT USING (auth.uid() = reporter_id);
 
--- blocks: 본인
-CREATE POLICY "blocks_self"        ON public.blocks FOR ALL USING (auth.uid() = blocker_id);
+-- blocks
+DROP POLICY IF EXISTS "blocks_self" ON public.blocks;
+CREATE POLICY "blocks_self" ON public.blocks FOR ALL USING (auth.uid() = blocker_id);
 
--- plus_subscriptions: 본인
-CREATE POLICY "plus_select_self"   ON public.plus_subscriptions FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "plus_insert_self"   ON public.plus_subscriptions FOR INSERT WITH CHECK (auth.uid() = user_id);
+-- plus_subscriptions
+DO $$ BEGIN CREATE POLICY "plus_select_self"       ON public.plus_subscriptions FOR SELECT USING (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "plus_insert_self"       ON public.plus_subscriptions FOR INSERT WITH CHECK (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 
 -- ============================================================
 -- 11. 실시간(Realtime) WebSocket 구독 활성화
 -- ============================================================
-ALTER PUBLICATION supabase_realtime ADD TABLE public.rooms;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.activity_feed;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.room_members;
+DO $$ BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.rooms;          EXCEPTION WHEN others THEN NULL; END $$;
+DO $$ BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;       EXCEPTION WHEN others THEN NULL; END $$;
+DO $$ BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;  EXCEPTION WHEN others THEN NULL; END $$;
+DO $$ BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.activity_feed;  EXCEPTION WHEN others THEN NULL; END $$;
+DO $$ BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.room_members;   EXCEPTION WHEN others THEN NULL; END $$;
 
 
 -- ============================================================
 -- 12. 샘플 데이터 (테스트용)
--- 주의: users 테이블은 auth.users에 종속되어 있어
---       실제 로그인 후 자동 생성으로 채워지므로 여기서는 rooms만 삽입합니다.
--- ============================================================
--- (로그인 후 자동 inserts됨, 아래는 익명 샘플은 안전상 생략)
 -- 모임은 실제 가입 유저가 앱에서 생성하면 자동으로 들어옵니다.
+-- ============================================================
 
 
 -- ============================================================
--- 완료! 모든 테이블이 생성되었습니다 ✅
--- 다음 단계:
---   1. Supabase > Settings > API 에서 URL, anon key 복사
---   2. app.js 8-9번 줄 YOUR_SUPABASE_URL_HERE / YOUR_SUPABASE_ANON_KEY_HERE 에 붙여넣기
---   3. 소셜 로그인: 대시보드 Authentication > Providers 에서 Google / Apple 활성화
+-- 13. 보조 함수 (Helper Functions)
 -- ============================================================
+
+-- 모임 참여 시 members 카운트 자동 증가
+CREATE OR REPLACE FUNCTION public.increment_members(room_id UUID)
+RETURNS VOID AS $$
+BEGIN
+  UPDATE public.rooms
+  SET members = members + 1
+  WHERE id = room_id AND members < max_members;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 모임 탈퇴 시 members 카운트 자동 감소
+CREATE OR REPLACE FUNCTION public.decrement_members(room_id UUID)
+RETURNS VOID AS $$
+BEGIN
+  UPDATE public.rooms
+  SET members = GREATEST(members - 1, 1)
+  WHERE id = room_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 인원 변경 시 status 자동 업데이트 트리거
+CREATE OR REPLACE FUNCTION public.update_room_status()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.members >= NEW.max_members THEN
+    NEW.status = '마감';     NEW.status_cls = 'full';
+  ELSIF NEW.members >= NEW.max_members - 1 THEN
+    NEW.status = '마감임박'; NEW.status_cls = 'soon';
+  ELSE
+    NEW.status = '모집중';   NEW.status_cls = 'open';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS on_room_members_change ON public.rooms;
+CREATE TRIGGER on_room_members_change
+  BEFORE UPDATE OF members ON public.rooms
+  FOR EACH ROW EXECUTE FUNCTION public.update_room_status();
+
+
+-- ============================================================
+-- 완료! 모든 테이블 및 함수가 생성되었습니다 ✅
+-- 이 파일은 중복 실행해도 에러 없이 안전합니다.
+-- ============================================================
+
+
+-- ============================================================
+-- 16. 거리 매칭을 위한 GPS 좌표 컬럼 추가
+-- ============================================================
+
+-- users 테이블에 위치 좌표 추가
+ALTER TABLE public.users
+  ADD COLUMN IF NOT EXISTS latitude  DECIMAL(10, 8),  -- 위도 (예: 37.49794)
+  ADD COLUMN IF NOT EXISTS longitude DECIMAL(11, 8);  -- 경도 (예: 127.02764)
+
+-- rooms 테이블에 모임 장소 좌표 추가
+ALTER TABLE public.rooms
+  ADD COLUMN IF NOT EXISTS latitude  DECIMAL(10, 8),  -- 모임 장소 위도
+  ADD COLUMN IF NOT EXISTS longitude DECIMAL(11, 8);  -- 모임 장소 경도
+
+-- ============================================================
+-- Haversine 거리 계산 함수 (km 단위 반환)
+-- 사용법: SELECT distance_km(37.497, 127.027, 37.560, 126.978);
+-- ============================================================
+CREATE OR REPLACE FUNCTION public.distance_km(
+  lat1 DECIMAL, lon1 DECIMAL,
+  lat2 DECIMAL, lon2 DECIMAL
+)
+RETURNS DECIMAL AS $$
+DECLARE
+  R CONSTANT DECIMAL := 6371; -- 지구 반지름 (km)
+  dLat DECIMAL;
+  dLon DECIMAL;
+  a    DECIMAL;
+BEGIN
+  dLat := radians(lat2 - lat1);
+  dLon := radians(lon2 - lon1);
+  a    := sin(dLat/2)^2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dLon/2)^2;
+  RETURN R * 2 * atan2(sqrt(a), sqrt(1 - a));
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- ============================================================
+-- 반경 내 모임 조회 함수
+-- 사용법: SELECT * FROM rooms_within_radius(37.497, 127.027, 5);
+-- ============================================================
+CREATE OR REPLACE FUNCTION public.rooms_within_radius(
+  user_lat  DECIMAL,
+  user_lon  DECIMAL,
+  radius_km DECIMAL DEFAULT 5
+)
+RETURNS TABLE (
+  id UUID, host_id UUID, game TEXT, title TEXT, place TEXT, "time" TEXT,
+  members INT, max_members INT, level TEXT, description TEXT,
+  status TEXT, status_cls TEXT, is_plus_only BOOLEAN,
+  latitude DECIMAL, longitude DECIMAL, created_at TIMESTAMPTZ,
+  distance_km DECIMAL
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    r.id, r.host_id, r.game, r.title, r.place, r.time,
+    r.members, r.max_members, r.level, r.description,
+    r.status, r.status_cls, r.is_plus_only,
+    r.latitude, r.longitude, r.created_at,
+    public.distance_km(user_lat, user_lon, r.latitude, r.longitude) AS distance_km
+  FROM public.rooms r
+  WHERE
+    r.latitude IS NOT NULL AND r.longitude IS NOT NULL
+    AND public.distance_km(user_lat, user_lon, r.latitude, r.longitude) <= radius_km
+    AND r.status != '마감'
+  ORDER BY distance_km ASC;
+END;
+$$ LANGUAGE plpgsql STABLE;
