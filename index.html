@@ -244,7 +244,7 @@
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
               <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
             </svg>
-            <span class="notif-badge">3</span>
+            <span class="notif-badge" style="display:none;">0</span>
           </button>
           <button class="icon-btn" id="profile-btn-top">
             <div class="avatar-sm" style="background: linear-gradient(135deg,#3B82F6,#8B5CF6)">U</div>
@@ -279,9 +279,7 @@
         <section class="section-block">
           <div class="section-header"><h2>실시간 활동</h2></div>
           <div class="activity-feed">
-            <div class="activity-item"><div class="ava xs" style="background:linear-gradient(135deg,#3B82F6,#8B5CF6)">지</div><p><strong>지민</strong>님이 뱅! 강남 모임에 <span class="act-join">참여</span>했어요</p><span class="act-time">1분 전</span></div>
-            <div class="activity-item"><div class="ava xs" style="background:linear-gradient(135deg,#10B981,#3B82F6)">수</div><p><strong>수현</strong>님이 새 모임을 <span class="act-create">생성</span>했어요</p><span class="act-time">3분 전</span></div>
-            <div class="activity-item"><div class="ava xs" style="background:linear-gradient(135deg,#F59E0B,#EF4444)">태</div><p><strong>태양</strong>님의 마피아 모임이 <span class="act-full">마감</span>됐어요</p><span class="act-time">5분 전</span></div>
+            <p style="text-align:center;padding:10px;color:#888;font-size:13px;">최근 활동이 없습니다.</p>
           </div>
         </section>
 
@@ -328,7 +326,7 @@
         <button class="nav-item" data-screen="chat">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           <span>채팅</span>
-          <span class="nav-badge">2</span>
+          <span class="nav-badge" style="display:none;">0</span>
         </button>
         <button class="nav-item" data-screen="profile">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -511,62 +509,7 @@
         <!-- Rooms Tab -->
         <div id="tab-rooms" class="tab-content active">
           <div class="explore-list">
-            <div class="explore-card" data-id="r1">
-              <div class="ec-left">
-                <div class="ec-game-icon">🎲</div>
-              </div>
-              <div class="ec-body">
-                <div class="ec-row1">
-                  <span class="game-tag">뱅!</span>
-                  <span class="match-status open">모집중</span>
-                </div>
-                <h3>강남에서 뱅! 같이 할 사람</h3>
-                <p>📍 강남역 보드카페 · 👥 2/6명 · ⏰ 오늘 7pm</p>
-              </div>
-              <button class="btn-sm-primary join-btn">참여</button>
-            </div>
-            <div class="explore-card" data-id="r2">
-              <div class="ec-left">
-                <div class="ec-game-icon">🃏</div>
-              </div>
-              <div class="ec-body">
-                <div class="ec-row1">
-                  <span class="game-tag">카탄</span>
-                  <span class="match-status open">모집중</span>
-                </div>
-                <h3>카탄 초보 환영 🤝</h3>
-                <p>📍 홍대 게임바 · 👥 3/4명 · ⏰ 오늘 6pm</p>
-              </div>
-              <button class="btn-sm-primary join-btn">참여</button>
-            </div>
-            <div class="explore-card" data-id="r3">
-              <div class="ec-left">
-                <div class="ec-game-icon">🕵️</div>
-              </div>
-              <div class="ec-body">
-                <div class="ec-row1">
-                  <span class="game-tag">코드네임</span>
-                  <span class="match-status soon">내일</span>
-                </div>
-                <h3>코드네임 팀전 멤버 구합니다</h3>
-                <p>📍 신촌 카페 · 👥 4/8명 · ⏰ 내일 3pm</p>
-              </div>
-              <button class="btn-sm-primary join-btn">참여</button>
-            </div>
-            <div class="explore-card" data-id="r4">
-              <div class="ec-left">
-                <div class="ec-game-icon">🎭</div>
-              </div>
-              <div class="ec-body">
-                <div class="ec-row1">
-                  <span class="game-tag">마피아</span>
-                  <span class="match-status soon">이번 주말</span>
-                </div>
-                <h3>마피아 고수들만 오세요 😈</h3>
-                <p>📍 건대 보드카페 · 👥 6/12명 · ⏰ 토요일 5pm</p>
-              </div>
-              <button class="btn-sm-primary join-btn">참여</button>
-            </div>
+            <p style="text-align:center;padding:20px;color:#888;">개설된 모임이 없습니다.</p>
           </div>
         </div>
         <!-- Games Tab -->
@@ -582,33 +525,7 @@
         <!-- People Tab -->
         <div id="tab-people" class="tab-content">
           <div class="people-list">
-            <div class="person-card">
-              <div class="ava" style="background:linear-gradient(135deg,#3B82F6,#8B5CF6)">지</div>
-              <div class="person-info">
-                <strong>지민</strong>
-                <p>뱅! · 카탄 · 코드네임</p>
-                <span class="level-badge">🎮 매칭 23회</span>
-              </div>
-              <button class="btn-sm-outline">프로필</button>
-            </div>
-            <div class="person-card">
-              <div class="ava" style="background:linear-gradient(135deg,#10B981,#3B82F6)">수</div>
-              <div class="person-info">
-                <strong>수현</strong>
-                <p>루미큐브 · 스플렌더</p>
-                <span class="level-badge">🎮 매칭 15회</span>
-              </div>
-              <button class="btn-sm-outline">프로필</button>
-            </div>
-            <div class="person-card">
-              <div class="ava" style="background:linear-gradient(135deg,#F59E0B,#EF4444)">태</div>
-              <div class="person-info">
-                <strong>태양</strong>
-                <p>마피아 · 뱅!</p>
-                <span class="level-badge">🎮 매칭 41회</span>
-              </div>
-              <button class="btn-sm-outline">프로필</button>
-            </div>
+            <p style="text-align:center;padding:20px;color:#888;">주변 유저를 찾을 수 없습니다.</p>
           </div>
         </div>
       </main>
@@ -628,32 +545,7 @@
         <div></div>
       </header>
       <main class="chat-list-main">
-        <div class="chat-item" id="open-chatroom">
-          <div class="ava-group">
-            <div class="ava" style="background:linear-gradient(135deg,#3B82F6,#8B5CF6)">지</div>
-            <div class="ava overlap" style="background:linear-gradient(135deg,#10B981,#3B82F6)">수</div>
-          </div>
-          <div class="chat-preview">
-            <div class="chat-preview-row1">
-              <strong>뱅! 강남 모임 🎲</strong>
-              <span class="chat-time">방금</span>
-            </div>
-            <p>지민: 오늘 7시 맞죠? 기대돼요!</p>
-          </div>
-          <span class="chat-unread">2</span>
-        </div>
-        <div class="chat-item">
-          <div class="ava-group">
-            <div class="ava" style="background:linear-gradient(135deg,#F59E0B,#EF4444)">태</div>
-          </div>
-          <div class="chat-preview">
-            <div class="chat-preview-row1">
-              <strong>태양</strong>
-              <span class="chat-time">어제</span>
-            </div>
-            <p>다음에 또 같이 해요 😄</p>
-          </div>
-        </div>
+        <p style="text-align:center;padding:20px;color:#888;">목록을 불러오는 중...</p>
       </main>
 
       <!-- Chat Room -->
