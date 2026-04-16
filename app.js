@@ -5,8 +5,8 @@
 // ===========================
 // SUPABASE BACKEND INIT (Vercel 호환)
 // ===========================
-const SUPABASE_URL = 'YOUR_SUPABASE_URL_HERE';      // 1. Supabase Project URL 입력
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY_HERE'; // 2. Supabase API Key 입력
+const SUPABASE_URL = 'https://kwurnepfofloiuwprqbd.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3dXJuZXBmb2Zsb2l1d3BycWJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNDAxOTcsImV4cCI6MjA5MTkxNjE5N30.29S6Ka-FzYXvepdjv8-H82fseMJGAiZ6eA8jtjt2VwQ';
 
 let supabase = null;
 if (typeof window.supabase !== 'undefined') {
@@ -178,9 +178,14 @@ async function socialLogin(providerName, provider) {
   showToast(`🔄 ${providerName} 로그인 중...`);
   if (isSupabaseConfigured() && provider) {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({ provider });
+      const redirectTo = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? window.location.origin
+        : 'https://bodweaver.vercel.app';
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo }
+      });
       if (error) throw error;
-      // OAuth 리다이렉트 후 자동 처리됨 (supabase가 세션 저장)
     } catch (err) {
       showToast(`로그인 오류: ${err.message}`);
     }
