@@ -114,7 +114,6 @@ function applyAreaFallback() {
   const coords = AREA_COORDS[area] || AREA_COORDS['강남'];
   userLat = coords.lat;
   userLng = coords.lng;
-  console.log(`📍 폴백 좌표 (${area}): ${userLat}, ${userLng}`);
 }
 
 // 반경 내 모임 필터링 (클라이언트 사이드)
@@ -1733,6 +1732,7 @@ if (isSupabaseConfigured()) {
         } else {
           goTo('home');
           renderDynamicRooms();
+          renderActivityFeed();
           subscribeToNotifications();
           renderChatList();
         }
@@ -1774,7 +1774,50 @@ async function loadUserProfile(userId) {
       const phoneEl = document.querySelector('#si-phone .si-val');
       if (phoneEl) phoneEl.textContent = currentUser.phone;
     }
-    console.log('👤 프로필 로드:', data);
+    // 프로필 로드 성공 → UI 업데이트
+    // 통계: 매칭 수
+    const matchEl = document.getElementById('profile-stat-match');
+    if (matchEl) matchEl.textContent = data.match_count ?? 0;
+    // 통계: 즐겨찾기 게임 수
+    const favEl = document.getElementById('profile-stat-fav');
+    if (favEl) favEl.textContent = (data.favorite_games ?? []).length;
+    // 통계: 평점
+    const ratingEl = document.getElementById('profile-stat-rating');
+    if (ratingEl) ratingEl.textContent = data.rating_avg ? `⭐ ${parseFloat(data.rating_avg).toFixed(1)}` : '-';
+    // 즐겨하는 게임 칩
+    const favChipWrap = document.getElementById('fav-game-chips');
+    if (favChipWrap && data.favorite_games?.length) {
+      const addChip = favChipWrap.querySelector('.add-chip');
+      favChipWrap.querySelectorAll('.fav-chip:not(.add-chip)').forEach(c => c.remove());
+      data.favorite_games.forEach(g => {
+        const span = document.createElement('span');
+        span.className = 'fav-chip';
+        span.textContent = g;
+        favChipWrap.insertBefore(span, addChip);
+      });
+    }
+    // 매칭 히스토리 (내가 참여한 방 목록)
+    if (isSupabaseConfigured() && userId) {
+      try {
+        const { data: joined } = await window.supabaseClient
+          .from('room_members')
+          .select('rooms(id, title, game, members, created_at)')
+          .eq('user_id', userId)
+          .eq('status', 'joined')
+          .order('joined_at', { ascending: false })
+          .limit(5);
+        const histEl = document.getElementById('history-list');
+        if (histEl && joined?.length) {
+          histEl.innerHTML = joined.map(m => {
+            const r = m.rooms;
+            if (!r) return '';
+            const ago = r.created_at ? new Date(r.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }) : '';
+            const icon = r.game?.match(/(\p{Emoji})/u)?.[0] || '🎲';
+            return `<div class="history-item"><span class="hi-icon">${icon}</span><div><strong>${r.title}</strong><p>${ago} · ${r.members ?? '-'}명</p></div><span class="hi-rate">⭐</span></div>`;
+          }).join('');
+        }
+      } catch(e) { /* 히스토리 로드 실패는 무시 */ }
+    }
   } catch (err) {
     console.error('프로필 로드 에러:', err);
   }
@@ -1798,7 +1841,7 @@ async function saveUserProfile(updates) {
 
 // ── 3. 모임 리스트 불러오기 ──
 async function fetchRoomsFromBackend() {
-  if (!isSupabaseConfigured()) return typeof ROOM_DATA !== 'undefined' ? ROOM_DATA : [];
+  if (!isSupabaseConfigured()) return [];
   try {
     const { data, error } = await window.supabaseClient
       .from('rooms')
@@ -2059,7 +2102,40 @@ async function renderChatList() {
   }
 }
 
-// ── 9. 후기 제출 ──
+// ── 8-2. 실시간 활동 피드 렌더링 ──
+async function renderActivityFeed() {
+  const feedEl = document.getElementById('activity-feed');
+  if (!feedEl || !isSupabaseConfigured()) return;
+  try {
+    const { data } = await window.supabaseClient
+      .from('activity_feed')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(6);
+    if (!data || data.length === 0) {
+      feedEl.innerHTML = '<p style="text-align:center;padding:10px;color:#888;font-size:13px;">\ucd5c\uadfc \ud65c\ub3d9\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.</p>';
+      return;
+    }
+    const actionLabel = { join: '\ucc38\uc5ec', create: '\uc0dd\uc131', full: '\ub9c8\uac10', review: '\ud6c4\uae30' };
+    const actionCls   = { join: 'act-join', create: 'act-create', full: 'act-full', review: 'act-create' };
+    const now = Date.now();
+    feedEl.innerHTML = data.map(item => {
+      const ms = now - new Date(item.created_at).getTime();
+      const m  = Math.floor(ms / 60000);
+      const timeStr = m < 1 ? '\ubc29\uae08' : m < 60 ? `${m}\ubd84 \uc804` : m < 1440 ? `${Math.floor(m/60)}\uc2dc\uac04 \uc804` : `${Math.floor(m/1440)}\uc77c \uc804`;
+      const initial = item.actor_name?.[0] || '?';
+      const action  = actionLabel[item.action] || item.action;
+      const cls     = actionCls[item.action]   || 'act-join';
+      return `<div class="activity-item">
+        <div class="ava xs" style="background:linear-gradient(135deg,#3B82F6,#8B5CF6)">${initial}</div>
+        <p><strong>${item.actor_name}</strong>\ub2d8\uc774 ${item.target ? `${item.target}\uc5d0 ` : ''}<span class="${cls}">${action}</span>\ud588\uc5b4\uc694</p>
+        <span class="act-time">${timeStr}</span>
+      </div>`;
+    }).join('');
+  } catch(e) { /* \ubb34\uc2dc */ }
+}
+
+// ── 9. \ud6c4\uae30 \uc81c\ucd9c ──
 async function submitReview(revieweeId, roomId, rating, tags, comment) {
   if (!isSupabaseConfigured() || !currentUser) return false;
   try {
