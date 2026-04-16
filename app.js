@@ -2158,7 +2158,7 @@ async function renderDynamicRooms() {
   const rooms = filterRoomsByRadius(allRooms, radiusKm);
 
   const homeContainer = document.getElementById('dynamic-rooms-home');
-  const exploreContainer = document.querySelector('#screen-explore .matches-grid');
+  const exploreContainer = document.querySelector('.explore-list');
 
   if (!rooms || rooms.length === 0) {
     const hasGeo = userLat && userLng;
