@@ -822,7 +822,7 @@ function closeChatroom() {
   }, 350);
 }
 
-document.getElementById('open-chatroom').addEventListener('click', openChatroom);
+// document.getElementById('open-chatroom')?.addEventListener('click', openChatroom); // Dynamic binding used now
 document.getElementById('close-chatroom').addEventListener('click', closeChatroom);
 
 const chatInput = document.getElementById('chat-input');
