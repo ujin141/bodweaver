@@ -561,10 +561,12 @@ document.getElementById('si-phone').addEventListener('click', () => openEditShee
 document.getElementById('si-email').addEventListener('click', () => openEditSheet());
 document.getElementById('si-location').addEventListener('click', () => openEditSheet());
 document.getElementById('si-range').addEventListener('click', () => showToast('현재 위치 설정으로 적용되었습니다'));
-document.getElementById('si-privacy').addEventListener('click', () => openTermsModal('privacy'));
-document.getElementById('si-terms').addEventListener('click', () => openTermsModal('terms'));
-document.getElementById('si-faq').addEventListener('click', () => showToast('고객센터 이메일: help@bodweaver.com'));
-document.getElementById('si-feedback').addEventListener('click', () => showToast('문의처 이메일이 복사되었습니다.'));
+document.getElementById('si-privacy').addEventListener('click', () => window.open('privacy.html', '_blank'));
+document.getElementById('si-terms').addEventListener('click', () => window.open('terms.html', '_blank'));
+document.getElementById('si-faq').addEventListener('click', () => showToast('고객센터: help@bodweaver.com'));
+document.getElementById('si-feedback').addEventListener('click', () => {
+  navigator.clipboard?.writeText('help@bodweaver.com').then(() => showToast('📧 매일 주소 복사됨: help@bodweaver.com'));
+});
 document.getElementById('si-version').addEventListener('click', () => showToast('환경: BODWEAVER v1.0.0 (최신 빌드)'));
 document.getElementById('si-logout').addEventListener('click', () => {
   showToast('🚪 로그아웃 완료');
